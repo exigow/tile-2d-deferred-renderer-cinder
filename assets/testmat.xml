@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<material>
+	<name>test material name with spaces</name>
+	<diffuse>diffuse.png</diffuse>
+	<normal>normal.png</normal>
+	<specular>specular.png</specular>
+</material>
