@@ -2,7 +2,6 @@
 #include <cinder/gl/gl.h>
 
 #include <cinder/Camera.h>
-#include <cinder/MayaCamUI.h>
 #include <cinder/gl/Texture.h>
 #include <cinder/ImageIo.h>
 #include <cinder/Utilities.h>
@@ -30,10 +29,13 @@ private:
 	TileDefRenderer* renderer;
 	Material* testMaterial;
 	vector<MaterialInstance*> testMaterialInstalceList;
+
+	Camera2dController* cameraController;
 	Camera2d* camera;
+
 	gl::GlslProg* gbufferShader;
 
-	bool moveTriggerUp, moveTriggerDown, moveTriggerLeft, moveTriggerRight;
+	float fps;
 };
 
 void Test::prepareSettings(Settings *settings) {
@@ -44,11 +46,6 @@ void Test::prepareSettings(Settings *settings) {
 }
 
 void Test::setup() {
-	moveTriggerUp = false;
-	moveTriggerDown = false; 
-	moveTriggerLeft = false;
-	moveTriggerRight = false;
-
 	// Load gbuffer shader.
 	gbufferShader = new gl::GlslProg(loadAsset("gbuffer.vert"), loadAsset("gbuffer.frag")); 
 	console() << gbufferShader << endl;
@@ -62,6 +59,7 @@ void Test::setup() {
 
 	// Camera.
 	camera = new Camera2d(640, 480);
+	cameraController = new Camera2dController(camera);
 
 	// Test material instances
 	MaterialInstance *_tmpInstance;
@@ -77,7 +75,7 @@ void Test::setup() {
 }
 
 void Test::update() {
-	const float spd = 4.0f;
+	/*const float spd = 4.0f;
 	if (moveTriggerUp) {
 		camera->addPosition(0.0f, -spd);
 	}
@@ -89,7 +87,9 @@ void Test::update() {
 	}
 	if (moveTriggerRight) {
 		camera->addPosition(spd, 0.0f);
-	}
+	}*/
+	cameraController->updateStep(1.0f / 60.0f);
+	fps = getAverageFps();
 }
 
 void Test::draw() {
@@ -141,41 +141,17 @@ void Test::draw() {
 
 	// Draw text.
 	gl::enableAlphaBlending();
-	gl::drawString(camera->getStateString(), Vec2f(8.0f, 8.0f), Color::white(), Font("Calibri", 16.0f));
+	gl::drawString(camera->getStateString() + "\n fps: " + toString(fps), Vec2f(8.0f, 8.0f), Color::white(), Font("Calibri", 16.0f));
 	gl::disableAlphaBlending();
 }
 
 
 //bool moveTriggerUp, moveTriggerDown, moveTriggerLeft, moveTriggerRight;
 void Test::keyDown(KeyEvent event) {
-	char ch = event.getChar();
-    if (ch == KeyEvent::KEY_w) {
-		moveTriggerUp = true;
-    }
-	if (ch == KeyEvent::KEY_s) {
-		moveTriggerDown = true;
-    }
-	if (ch == KeyEvent::KEY_a) {
-		moveTriggerLeft = true;
-    }
-	if (ch == KeyEvent::KEY_d) {
-		moveTriggerRight = true;
-    }
+	cameraController->sendEventState(event, Camera2dController::EVENT_KEY_PRESS);
 }
 void Test::keyUp(KeyEvent event) {
-    char ch = event.getChar();
-    if (ch == KeyEvent::KEY_w) {
-		moveTriggerUp = false;
-    }
-	if (ch == KeyEvent::KEY_s) {
-		moveTriggerDown = false;
-    }
-	if (ch == KeyEvent::KEY_a) {
-		moveTriggerLeft = false;
-    }
-	if (ch == KeyEvent::KEY_d) {
-		moveTriggerRight = false;
-    }
+	cameraController->sendEventState(event, Camera2dController::EVENT_KEY_RELEASE);
 }
 
 CINDER_APP_BASIC(Test, RendererGl)

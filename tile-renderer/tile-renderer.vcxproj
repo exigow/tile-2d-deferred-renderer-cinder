@@ -12,12 +12,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Camera2d.cpp" />
+    <ClCompile Include="src\Camera2dController.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\MaterialInstance.cpp" />
     <ClCompile Include="src\TileDefRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Camera2d.h" />
+    <ClInclude Include="src\Camera2dController.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MaterialInstance.h" />
     <ClInclude Include="src\TileDefRenderer.h" />
