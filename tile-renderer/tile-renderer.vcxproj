@@ -15,15 +15,17 @@
     <ClCompile Include="src\Camera2dController.cpp" />
     <ClCompile Include="src\Material.cpp" />
     <ClCompile Include="src\MaterialInstance.cpp" />
-    <ClCompile Include="src\TileDefRenderer.cpp" />
+    <ClCompile Include="src\Tile.cpp" />
+    <ClCompile Include="src\TileRenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Camera2d.h" />
     <ClInclude Include="src\Camera2dController.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\MaterialInstance.h" />
-    <ClInclude Include="src\TileDefRenderer.h" />
+    <ClInclude Include="src\Tile.h" />
     <ClInclude Include="src\TileRenderer.h" />
+    <ClInclude Include="src\TileRendererInit.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5B2258FC-5398-4E09-A6CA-085DDBD232D5}</ProjectGuid>

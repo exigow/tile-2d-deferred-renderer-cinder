@@ -1,7 +1,22 @@
 ﻿#pragma once
 
-#include "Camera2d.h"
-#include "Material.h"
-#include "MaterialInstance.h"
-#include "TileDefRenderer.h"
-#include "Camera2dController.h"
+#include <cinder/Vector.h>
+#include <cinder/gl/Fbo.h>
+
+#include "Tile.h"
+
+using namespace ci;
+
+namespace tiler {
+	class TileRenderer {
+	public:
+		TileRenderer(int width, int height);
+		~TileRenderer();
+
+		gl::Fbo gbuffer; // G-Buffer FBO.
+
+	private:
+		gl::Fbo::Format gbufferFormat; // G-Buffer format.
+		std::vector<Tile> tiles; // Tile list.
+	};
+};

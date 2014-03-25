@@ -10,11 +10,12 @@
 
 #include <math.h>
 
-#include "TileRenderer.h"
+#include "TileRendererInit.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
+using namespace tiler;
 
 class Test : public AppBasic {
 public:
@@ -26,7 +27,7 @@ public:
 	void keyUp(KeyEvent event);
 
 private:
-	TileDefRenderer* renderer;
+	TileRenderer* renderer;
 	Material* testMaterial;
 	vector<MaterialInstance*> testMaterialInstalceList;
 
@@ -41,17 +42,18 @@ private:
 void Test::prepareSettings(Settings *settings) {
 	settings->setWindowSize(640, 480);
 	settings->setFrameRate(60.0f);
-	settings->setTitle("deferred-2d");
+	settings->setTitle("tile-deferred-2d");
 	settings->enableConsoleWindow();
 }
 
 void Test::setup() {
 	// Load gbuffer shader.
 	gbufferShader = new gl::GlslProg(loadAsset("gbuffer.vert"), loadAsset("gbuffer.frag")); 
-	console() << gbufferShader << endl;
+	//gbufferShader = new gl::GlslProg(loadAsset("gbuffer.vert"), loadAsset("gbuffer.frag")); 
+	//console() << gbufferShader << endl;
 
 	// Renderer.
-	renderer = new TileDefRenderer(640, 480);
+	renderer = new TileRenderer(640, 480);
 
 	// Material.
 	testMaterial = new Material();
@@ -75,32 +77,14 @@ void Test::setup() {
 }
 
 void Test::update() {
-	/*const float spd = 4.0f;
-	if (moveTriggerUp) {
-		camera->addPosition(0.0f, -spd);
-	}
-	if (moveTriggerDown) {
-		camera->addPosition(0.0f, spd);
-	}
-	if (moveTriggerLeft) {
-		camera->addPosition(-spd, 0.0f);
-	}
-	if (moveTriggerRight) {
-		camera->addPosition(spd, 0.0f);
-	}*/
 	cameraController->updateStep(1.0f / 60.0f);
 	fps = getAverageFps();
 }
 
 void Test::draw() {
-	// Clear background.
-	gl::clear(Color(0.025f, 0.0f, 0.0f));
-
-	// Camera update.
-	//camera->setPosition((float)cos(getElapsedSeconds()) * 32.0f, (float)sin(getElapsedSeconds()) * 32.0f);
-	//camera->setZoom(1.0f + (float)sin(getElapsedSeconds() * 1.25f) * 0.25f);
+	// Update camera.
 	camera->updateMatrix();
-	
+
 	// Bind draw to buffer.
 	renderer->gbuffer.bindFramebuffer();
 		// Bind shader.
@@ -129,6 +113,7 @@ void Test::draw() {
 					gl::draw(_tmpInstance->getMaterial()->diffuse);
 				gl::popMatrices();
 			}
+		// Pop camera matrix.
 		gl::popMatrices();
 
 		// Bind shader.
@@ -137,16 +122,17 @@ void Test::draw() {
 	renderer->gbuffer.unbindFramebuffer();
 
 	// Draw buffer on screen.
-	gl::draw(renderer->gbuffer.getTexture(0));
+	gl::draw(renderer->gbuffer.getTexture(1));
 
 	// Draw text.
 	gl::enableAlphaBlending();
-	gl::drawString(camera->getStateString() + "\n fps: " + toString(fps), Vec2f(8.0f, 8.0f), Color::white(), Font("Calibri", 16.0f));
+	gl::drawString(
+		camera->getStateString() + "\n" + 
+		" fps: " + toString(fps) + "\n", 
+		Vec2f(8.0f, 8.0f), Color::white(), Font("Calibri", 24.0f));
 	gl::disableAlphaBlending();
 }
 
-
-//bool moveTriggerUp, moveTriggerDown, moveTriggerLeft, moveTriggerRight;
 void Test::keyDown(KeyEvent event) {
 	cameraController->sendEventState(event, Camera2dController::EVENT_KEY_PRESS);
 }

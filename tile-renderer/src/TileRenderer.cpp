@@ -1,9 +1,11 @@
-﻿#include "TileDefRenderer.h"
+﻿#include "TileRenderer.h"
 
 #include <cinder/Vector.h>
 #include <cinder/gl/Fbo.h>
 
-TileDefRenderer::TileDefRenderer(int width = 640, int height = 480) {
+using namespace tiler;
+
+TileRenderer::TileRenderer(int width = 640, int height = 480) {
 	gbufferFormat.setColorInternalFormat(GL_RGB8);
 	gbufferFormat.setSamples(0);
 	gbufferFormat.setCoverageSamples(0);
@@ -15,5 +17,5 @@ TileDefRenderer::TileDefRenderer(int width = 640, int height = 480) {
 	gbuffer.getTexture(2).setFlipped(true);
 }
 
-TileDefRenderer::~TileDefRenderer() {
+TileRenderer::~TileRenderer() {
 }

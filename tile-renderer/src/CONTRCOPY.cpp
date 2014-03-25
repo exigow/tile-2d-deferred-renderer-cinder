@@ -6,16 +6,15 @@ using namespace ci;
 using namespace ci::app;
 
 Camera2dController::Camera2dController(Camera2d* cameraPtr) {
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < 4; i++) {
 		trigger[i] = false;
 	}
 
-	camera = cameraPtr;
+	moveVec = Vec2f();
+	preMoveVec = Vec2f();
+	stepVec = Vec2f();
 
-	moveTargetVec = Vec2f(cameraPtr->getPosition());
-	moveVec = Vec2f(moveTargetVec);
-	zoomTarget = cameraPtr->getZoom();
-	zoom = zoomTarget;
+	camera = cameraPtr;
 }
 
 Camera2dController::~Camera2dController() {
@@ -47,14 +46,6 @@ void Camera2dController::sendEventState(KeyEvent event, EventMode mode) {
 			trigger[3] = _press;
 			break;
 		}
-		case KeyEvent::KEY_q: {
-			trigger[4] = _press;
-			break;
-		}
-		case KeyEvent::KEY_e: {
-			trigger[5] = _press;
-			break;
-		}
 	}
 }
 
@@ -66,54 +57,46 @@ void Camera2dController::updateStep(float deltaTime) {
 	#define DOWN trigger[1]
 	#define LEFT trigger[2]
 	#define RIGHT trigger[3]
-	#define ZOOMIN trigger[4]
-	#define ZOOMOUT trigger[5]
 
-	float _x = 0.0f, _y = 0.0f;
+	preMoveVec.set(0.0f, 0.0f);
 	if (UP) {
-		_y = -1.0f;
+		preMoveVec.y = -1.0f;
 	}
 	if (DOWN) {
-		_y = 1.0f;
+		preMoveVec.y = 1.0f;
 	}
 	if (LEFT) {
-		_x = -1.0f;
+		preMoveVec.x = -1.0f;
 	}
 	if (RIGHT) {
-		_x = 1.0f;
+		preMoveVec.x = 1.0f;
 	}
 	if (UP && RIGHT) {
-		_x = .7f;
-		_y = -.7f;
+		preMoveVec.x = .7f;
+		preMoveVec.y = -.7f;
 	}
 	if (UP && LEFT) {
-		_x = -.7f;
-		_y = -.7f;
+		preMoveVec.x = -.7f;
+		preMoveVec.y = -.7f;
 	}
 	if (DOWN && RIGHT) {
-		_x = .7f;
-		_y = .7f;
+		preMoveVec.x = .7f;
+		preMoveVec.y = .7f;
 	}
 	if (DOWN && LEFT) {
-		_x = -.7f;
-		_y = .7f;
+		preMoveVec.x = -.7f;
+		preMoveVec.y = .7f;
 	}
 
-	if (ZOOMOUT) {
-		zoomTarget -= 0.0125f;
-	}
-	if (ZOOMIN) {
-		zoomTarget += 0.0125f;
-	}
+	stepVec.x += preMoveVec.x;
+	stepVec.y += preMoveVec.y;
 
-	zoom += (zoomTarget - zoom) * .125f;
+	stepVec.x *= .875f;
+	stepVec.y *= .875f;
 
-	moveTargetVec.x += _x * deltaTime * 192.0f;
-	moveTargetVec.y += _y * deltaTime * 192.0f;
+	camera->addPosition(stepVec.x, stepVec.y);
+}
 
-	moveVec.x += (moveTargetVec.x - moveVec.x) * .125f;
-	moveVec.y += (moveTargetVec.y - moveVec.y) * .125f;
-
-	camera->setPosition(moveVec.x, moveVec.y);
-	camera->setZoom(zoom);
+void Camera2dController::linkTriggerToKey(KeyEvent key, TriggerType trig) {
+	//trigger[trig] = false;
 }
