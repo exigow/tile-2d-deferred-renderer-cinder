@@ -23,8 +23,10 @@ public:
 	void setup();
 	void update();
 	void draw();
+
 	void keyDown(KeyEvent event);
 	void keyUp(KeyEvent event);
+	void mouseMove(MouseEvent event);
 
 private:
 	TileRenderer* renderer;
@@ -34,7 +36,12 @@ private:
 	Camera2dController* cameraController;
 	Camera2d* camera;
 
-	gl::GlslProg* gbufferShader;
+	gl::GlslProg 
+		*gbufferShader, 
+		*pointLightShader;
+
+	Vec2f mousePos, mousePosNormal;
+	Rectf *globalRect;
 
 	float fps;
 };
@@ -47,10 +54,15 @@ void Test::prepareSettings(Settings *settings) {
 }
 
 void Test::setup() {
-	// Load gbuffer shader.
+	globalRect = new Rectf();
+	globalRect->set(0, 480, 640, 0);
+
+	//gl::drawSolidRoundedRect(rect, 15.0);
+
+	// Load shader.
 	gbufferShader = new gl::GlslProg(loadAsset("gbuffer.vert"), loadAsset("gbuffer.frag")); 
-	//gbufferShader = new gl::GlslProg(loadAsset("gbuffer.vert"), loadAsset("gbuffer.frag")); 
-	//console() << gbufferShader << endl;
+	pointLightShader = new gl::GlslProg(loadAsset("pointLight.vert"), loadAsset("pointLight.frag")); 
+	console() << " " << endl;
 
 	// Renderer.
 	renderer = new TileRenderer(640, 480);
@@ -84,51 +96,59 @@ void Test::update() {
 void Test::draw() {
 	// Update camera.
 	camera->updateMatrix();
+	
+	// Start capture.
+	renderer->captureStart(camera->getCameraOrtho(), gbufferShader);
 
-	// Bind draw to buffer.
-	renderer->gbuffer.bindFramebuffer();
-		// Bind shader.
-		gbufferShader->bind();
+		MaterialInstance* _tmpInstance;
+		for (size_t i = 0; i < testMaterialInstalceList.size(); i++) {
+			// Get instance pointer.
+			_tmpInstance = testMaterialInstalceList[i];
 
-		gbufferShader->uniform("diffuseTex", 0);
-		gbufferShader->uniform("normalTex", 1);
-		gbufferShader->uniform("specularTex", 2);
+			// Bind textures.
+			_tmpInstance->getMaterial()->diffuse.bind(0);
+			_tmpInstance->getMaterial()->normal.bind(1);
+			_tmpInstance->getMaterial()->specular.bind(2);
 
-		// Push camera matrix.
-		gl::pushMatrices();
-		gl::setMatrices(camera->getCameraOrtho());
-			MaterialInstance* _tmpInstance;
-			for (size_t i = 0; i < testMaterialInstalceList.size(); i++) {
-				// Get instance pointer.
-				_tmpInstance = testMaterialInstalceList[i];
+			// Translate (pos/rotation).
+			gl::pushMatrices();
+				gl::translate(_tmpInstance->getX(), _tmpInstance->getY());
+				gl::draw(_tmpInstance->getMaterial()->diffuse);
+			gl::popMatrices();
+		}
 
-				// Bind textures.
-				_tmpInstance->getMaterial()->diffuse.bind(0);
-				_tmpInstance->getMaterial()->normal.bind(1);
-				_tmpInstance->getMaterial()->specular.bind(2);
+	// End capture.
+	renderer->captureEnd(gbufferShader);
 
-				// Translate (pos/rotation).
-				gl::pushMatrices();
-					gl::translate(_tmpInstance->getX(), _tmpInstance->getY());
-					gl::draw(_tmpInstance->getMaterial()->diffuse);
-				gl::popMatrices();
-			}
-		// Pop camera matrix.
-		gl::popMatrices();
+	// Bind buffers.
+	renderer->gbuffer.getTexture(0).bind(0);
+	renderer->gbuffer.getTexture(1).bind(1);
+	renderer->gbuffer.getTexture(2).bind(2);
 
-		// Bind shader.
-		gbufferShader->unbind();
-	// Unbind.
-	renderer->gbuffer.unbindFramebuffer();
+	// Bind shader.
+	pointLightShader->bind();
 
-	// Draw buffer on screen.
-	gl::draw(renderer->gbuffer.getTexture(1));
+		// Set texture uniforms.
+		pointLightShader->uniform("diffuseTex", 0);
+		pointLightShader->uniform("normalTex", 1);
+		pointLightShader->uniform("specularTex", 2);
+
+		// Set var unif.
+		pointLightShader->uniform("mousePos", mousePosNormal);
+
+		// Draw.
+		gl::drawSolidRect(*globalRect);
+
+	// Unbind shader.
+	pointLightShader->unbind();
 
 	// Draw text.
 	gl::enableAlphaBlending();
 	gl::drawString(
-		camera->getStateString() + "\n" + 
-		" fps: " + toString(fps) + "\n", 
+		"camera: " + camera->getStateString() + "\n" + 
+		"fps: " + toString(fps) + "\n" +
+		"mouse: " + toString(mousePos) + "\n" + 
+		"mouseNormal: " + toString(mousePosNormal) + "\n", 
 		Vec2f(8.0f, 8.0f), Color::white(), Font("Calibri", 24.0f));
 	gl::disableAlphaBlending();
 }
@@ -138,6 +158,10 @@ void Test::keyDown(KeyEvent event) {
 }
 void Test::keyUp(KeyEvent event) {
 	cameraController->sendEventState(event, Camera2dController::EVENT_KEY_RELEASE);
+}
+void Test::mouseMove(MouseEvent event) {
+    mousePos = event.getPos();
+	mousePosNormal = Vec2f((float)mousePos.x / 640.0f, (float)mousePos.y / 480.0f);
 }
 
 CINDER_APP_BASIC(Test, RendererGl)
