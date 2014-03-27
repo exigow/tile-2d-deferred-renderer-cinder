@@ -127,15 +127,18 @@ void Test::draw() {
 
 	// Bind shader.
 	pointLightShader->bind();
-
+		
 		// Set texture uniforms.
 		pointLightShader->uniform("diffuseTex", 0);
 		pointLightShader->uniform("normalTex", 1);
 		pointLightShader->uniform("specularTex", 2);
 
-		// Set var unif.
-		pointLightShader->uniform("mousePos", mousePosNormal);
-
+		// Set var unif. 
+		pointLightShader->uniform("lightPos", Vec2f(mousePosNormal.x, 1.0f - mousePosNormal.y));
+		pointLightShader->uniform("lightRadius", 256.0f);
+		pointLightShader->uniform("bufferRatio", globalRect->getAspectRatio());
+		pointLightShader->uniform("bufferSize", globalRect->getWidth());
+		
 		// Draw.
 		gl::drawSolidRect(*globalRect);
 
