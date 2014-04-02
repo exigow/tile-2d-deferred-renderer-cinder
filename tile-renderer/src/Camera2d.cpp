@@ -40,7 +40,7 @@ std::string Camera2d::getStateString() {
 	return 
 		"position (center): " + toString(position) + "\n" + 
 		"zoom: " + toString(zoom) + "\n" +
-		"size: " + toString(size) + "\n";
+		"size: " + toString(size);
 }
 
 Vec2f Camera2d::getSize() {

@@ -4,8 +4,17 @@
 
 using namespace tiler;
 
-Tile::Tile() {
+Tile::Tile(int tileSize, gl::Fbo::Format format) {
+	fbo = gl::Fbo(tileSize, tileSize, format);
 }
 
 Tile::~Tile() {
+}
+
+gl::Fbo Tile::getBuffer() {
+	return fbo;
+}
+
+Vec2i Tile::getSize() {
+	return fbo.getSize();
 }

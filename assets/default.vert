@@ -1,9 +1,6 @@
 #version 120
 
-uniform float dist;
-varying vec4 pos;
-
 void main(void) {
 	gl_Position = ftransform();
-	pos = gl_Position;
+    gl_TexCoord[0] = gl_MultiTexCoord0;
 }
