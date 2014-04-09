@@ -2,6 +2,7 @@
 
 #include <cinder/Vector.h>
 #include <cinder/gl/Fbo.h>
+#include <cinder/gl/Vbo.h>
 #include <cinder/gl/GlslProg.h>
 #include <cinder/Camera.h>
 
@@ -21,7 +22,7 @@ namespace tiler {
 		void captureStart(CameraOrtho cameraOrtho, GlslProg *gbufferShader);
 		void captureEnd(GlslProg *gbufferShader);
 
-		void updateTilesFbos(GlslProg *indrawShader);
+		void drawTileTable(GlslProg *shader);
 
 		Tile getTile(int tileCount);
 		Tile getTile(int tileWidth, int tileHeight);
@@ -34,6 +35,8 @@ namespace tiler {
 
 		Rectf *tileRect;
 
+		gl::VboMeshRef vboTile;
+
 	private:
 		gl::Fbo::Format gbufferFormat; // G-Buffer format.
 		gl::Fbo::Format tileFormat;
@@ -42,5 +45,7 @@ namespace tiler {
 
 		int tileTableWidth, tileTableHeight,
 			tileSize;
+
+		GLfloat tileVerts[3 * 4];
 	};
 };

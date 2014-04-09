@@ -14,6 +14,8 @@ using namespace tiler;
 
 TileRenderer::TileRenderer(int width = 640, int height = 480, int tileSize = 32) {
 	this->tileSize = tileSize;
+	this->tileTableWidth = width / tileSize;
+	this->tileTableHeight = height / tileSize;
 
 	// Create fbo.
 	gbufferFormat.setColorInternalFormat(GL_RGB8);
@@ -33,17 +35,59 @@ TileRenderer::TileRenderer(int width = 640, int height = 480, int tileSize = 32)
 			_ptr = new Tile(tileSize, tileFormat);
 			tiles.push_back(_ptr);
 
+			// Fill fbo (default color).
 			_ptr->getBuffer().bindFramebuffer();
-				gl::clear(ColorA(randFloat(), randFloat(), randFloat(), 1.0f));
+				gl::clear(ColorA(.125, 0.0f, .125, 1.0f));
 			_ptr->getBuffer().unbindFramebuffer();
 		}
 	}
 
-	tileTableWidth = width / tileSize;
-	tileTableHeight = height / tileSize;
-
+	// Tile rectangle.
 	tileRect = new Rectf();
 	tileRect->set(0, (float)tileSize, (float)tileSize, 0);
+
+	// Debug console info.
+	console() << "width: " << this->gbuffer.getWidth() << endl << "height: " << this->gbuffer.getHeight() << endl;
+	console() << "tile size: " << this->getTileSize() << endl;
+	console() << "tile max W: " << this->getTileWidthCount() << endl << "tile max H: " << this->getTileHeightCount() << endl;
+
+	// Create tile vbo.
+	gl::VboMesh::Layout vboTileLayout;
+	vboTileLayout.setStaticIndices();
+	vboTileLayout.setStaticPositions();
+	vboTileLayout.setDynamicTexCoords2d();
+	vboTile = gl::VboMesh::create(
+	4, 4, vboTileLayout, GL_QUADS);
+
+	// Build indices.
+	vector<uint32_t> vboTileIndices;
+	vboTileIndices.push_back(0);
+	vboTileIndices.push_back(1);
+	vboTileIndices.push_back(2);
+	vboTileIndices.push_back(3);
+	vboTile->bufferIndices(vboTileIndices);
+
+	// Build positions.
+	vector<Vec3f> vboTilePositions;
+	vboTilePositions.push_back(Vec3f(0, 0, 0));
+	vboTilePositions.push_back(Vec3f((float)tileSize, 0, 0));
+	vboTilePositions.push_back(Vec3f((float)tileSize, (float)tileSize, 0));
+	vboTilePositions.push_back(Vec3f(0, (float)tileSize, 0));
+	vboTile->bufferPositions(vboTilePositions);
+
+	// Build uv (DEFAULT DYNAMIC).
+	gl::VboMesh::VertexIter vboIter = vboTile->mapVertexBuffer();
+	vboIter.setTexCoord2d0(Vec2f(0.0f, 1.0f)); ++vboIter;
+	vboIter.setTexCoord2d0(Vec2f(1.0f, 1.0f)); ++vboIter;
+	vboIter.setTexCoord2d0(Vec2f(1.0f, 0.0f)); ++vboIter;
+	vboIter.setTexCoord2d0(Vec2f(0.0f, 0.0f));
+
+	/*int i = 0;
+	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f; i++;
+	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f; i++;
+	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f; i++;
+	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f;*/
+
 }
 
 TileRenderer::~TileRenderer() {
@@ -104,28 +148,27 @@ std::string TileRenderer::getStateString() {
 		"tiles count: " + toString(tileTableWidth) + ", " + toString(tileTableHeight) + "\n";
 }
 
-void TileRenderer::updateTilesFbos(GlslProg *indrawShader) {
-	indrawShader->uniform("texture", 0);
-	indrawShader->bind();
+void TileRenderer::drawTileTable(GlslProg *shader) {
+	// Bind shader.
+	shader->bind();
+		shader->uniform("texture", 0);
 		for (int ix = 0; ix < getTileWidthCount(); ix++) {
 			for (int iy = 0; iy < getTileHeightCount(); iy++) {
-				getTile(ix + (iy * getTileWidthCount())).getBuffer().getTexture(0).bind(0);
-
 				// Bind tile texture.
-				//renderer->getTile(ix + (iy * renderer->getTileWidthCount())).getBuffer().getTexture(0).bind(0);
+				getTile(ix, iy).getBuffer().getTexture(0).bind(0);
 
 				// Compute position and size.
-				/*float 
-					_x = (float)ix * renderer->getTileSize(), 
-					_y = (float)iy * renderer->getTileSize(),
-					_s = (float)renderer->getTileSize();
+				float 
+					_x = (float)ix * getTileSize(), 
+					_y = (float)iy * getTileSize(),
+					_s = (float)getTileSize();
 
 				// Draw.
-				/*gl::pushMatrices();
+				gl::pushMatrices();
 					gl::translate(_x, _y);
-					gl::drawSolidRect(*(renderer->tileRect));
-				gl::popMatrices();*/
+					gl::drawSolidRect(*(tileRect));
+				gl::popMatrices();
 			}
 		}
-	indrawShader->unbind();
+	shader->unbind();
 }

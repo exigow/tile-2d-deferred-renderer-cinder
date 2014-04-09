@@ -123,13 +123,14 @@ void Test::draw() {
 	// End capture.
 	renderer->captureEnd(gbufferShader);
 
+	/*
 	// Bind buffers.
-	/*renderer->gbuffer.getTexture(0).bind(0);
+	renderer->gbuffer.getTexture(0).bind(0);
 	renderer->gbuffer.getTexture(1).bind(1);
-	renderer->gbuffer.getTexture(2).bind(2);*/
+	renderer->gbuffer.getTexture(2).bind(2);
 
 	// Bind shader.
-	/*pointLightShader->bind();
+	pointLightShader->bind();
 		
 		// Set texture uniforms.
 		pointLightShader->uniform("diffuseTex", 0);
@@ -145,34 +146,53 @@ void Test::draw() {
 		gl::drawSolidRect(*globalRect);
 
 	// Unbind shader.
-	pointLightShader->unbind();*/
+	pointLightShader->unbind();
+	*/
 
+	// Fill test tile.
+	renderer->gbuffer.getTexture(1).bind(0);
+		defaultShader->bind();
+			for (int ix = 0; ix < renderer->getTileWidthCount(); ix++) {
+				for (int iy = 0; iy < renderer->getTileHeightCount(); iy++) {
+					renderer->getTile(ix, iy).getBuffer().bindFramebuffer();
+					defaultShader->uniform("texture", 0);
+					gl::pushMatrices();
+						gl::translate(Vec2f(0.0f, (float)renderer->gbuffer.getHeight()) - Vec2f(0.0f, (float)renderer->getTileSize()));
+						// TODO Tu trzeba updejtowac uv-coordy do komorek.
+						gl::drawSolidRect(*(renderer->tileRect));
+					gl::popMatrices();
+				}
+			}
+		defaultShader->unbind();
+	renderer->getTile(0).getBuffer().unbindFramebuffer();
 
-	//gl::enableWireframe();
-	
+	// Draw tiles.
+	renderer->drawTileTable(defaultShader);
+
+	//gl::VboMesh::VertexIter iter = renderer->vboTile->mapVertexBuffer();
+	//iter.setTexCoord2d0(Vec2f(0.0f, 1.0f)); ++iter;
+	//iter.setTexCoord2d0(Vec2f(1.0f, 1.0f)); ++iter;
+	//iter.setTexCoord2d0(Vec2f(1.0f, 0.0f)); ++iter;
+	//iter.setTexCoord2d0(Vec2f(0.0f, 0.0f)); ++iter;
+
+	/*gl::VboMesh::VertexIter iter = renderer->vboTile->mapVertexBuffer();
+	iter.setTexCoord2d0(Vec2f(0.0f, 1.0f)); ++iter;
+	iter.setTexCoord2d0(Vec2f(1.0f, 1.0f)); ++iter;
+	iter.setTexCoord2d0(Vec2f(1.0f, 0.0f)); ++iter;
+	iter.setTexCoord2d0(Vec2f(0.0f, 0.0f));*/
+
+	// Testing vbo!
+	renderer->gbuffer.getTexture(0).bind(0);
 	defaultShader->bind();
 		defaultShader->uniform("texture", 0);
-		for (int ix = 0; ix < renderer->getTileWidthCount(); ix++) {
-			for (int iy = 0; iy < renderer->getTileHeightCount(); iy++) {
-				// Bind tile texture.
-				//renderer->getTile(ix + (iy * renderer->getTileWidthCount())).getBuffer().getTexture(0).bind(0);
-				renderer->getTile(ix, iy).getBuffer().getTexture(0).bind(0);
 
-				// Compute position and size.
-				float 
-					_x = (float)ix * renderer->getTileSize(), 
-					_y = (float)iy * renderer->getTileSize(),
-					_s = (float)renderer->getTileSize();
+		//gl::pushMatrices();
+		//gl::scale(10.0f, 5.0f);
+		gl::draw(renderer->vboTile);
+		//gl::popMatrices();
 
-				// Draw.
-				gl::pushMatrices();
-					gl::translate(_x, _y);
-					gl::drawSolidRect(*(renderer->tileRect));
-				gl::popMatrices();
-			}
-		}
+		//gl::drawSolidRect(*(renderer->tileRect));
 	defaultShader->unbind();
-
 
 	// Draw text.
 	gl::enableAlphaBlending();
