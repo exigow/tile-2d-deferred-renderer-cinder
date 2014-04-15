@@ -82,13 +82,13 @@ void Test::setup() {
 	MaterialInstance *_tmpInstance;
 	#define MAX 1
 	#define MSCALE 256.0f
-	for (int ix = -MAX; ix < MAX * 2; ix++) {
-		for (int iy = -MAX; iy < MAX * 2; iy++) {
+	//for (int ix = -MAX; ix < MAX * 2; ix++) {
+		//for (int iy = -MAX; iy < MAX * 2; iy++) {
 			_tmpInstance = new MaterialInstance(testMaterial);
-			_tmpInstance->setPosition((float)ix * MSCALE, (float)iy * MSCALE);
+			//_tmpInstance->setPosition((float)ix * MSCALE, (float)iy * MSCALE);
 			testMaterialInstalceList.push_back(_tmpInstance);
-		}
-	}
+		//}
+	//}
 }
 
 void Test::update() {
@@ -97,9 +97,13 @@ void Test::update() {
 }
 
 void Test::draw() {
+	gl::clear();
+
 	// Update camera.
 	camera->updateMatrix();
 	
+	renderer->clearBuffers();
+
 	// Start capture.
 	renderer->captureStart(camera->getCameraOrtho(), gbufferShader);
 
@@ -150,7 +154,7 @@ void Test::draw() {
 	*/
 
 	// Fill test tile.
-	renderer->gbuffer.getTexture(1).bind(0);
+	/*renderer->gbuffer.getTexture(1).bind(0);
 		defaultShader->bind();
 			for (int ix = 0; ix < renderer->getTileWidthCount(); ix++) {
 				for (int iy = 0; iy < renderer->getTileHeightCount(); iy++) {
@@ -164,34 +168,49 @@ void Test::draw() {
 				}
 			}
 		defaultShader->unbind();
-	renderer->getTile(0).getBuffer().unbindFramebuffer();
+	renderer->getTile(0).getBuffer().unbindFramebuffer();*/
 
 	// Draw tiles.
 	renderer->drawTileTable(defaultShader);
 
-	//gl::VboMesh::VertexIter iter = renderer->vboTile->mapVertexBuffer();
-	//iter.setTexCoord2d0(Vec2f(0.0f, 1.0f)); ++iter;
-	//iter.setTexCoord2d0(Vec2f(1.0f, 1.0f)); ++iter;
-	//iter.setTexCoord2d0(Vec2f(1.0f, 0.0f)); ++iter;
-	//iter.setTexCoord2d0(Vec2f(0.0f, 0.0f)); ++iter;
-
-	/*gl::VboMesh::VertexIter iter = renderer->vboTile->mapVertexBuffer();
-	iter.setTexCoord2d0(Vec2f(0.0f, 1.0f)); ++iter;
-	iter.setTexCoord2d0(Vec2f(1.0f, 1.0f)); ++iter;
-	iter.setTexCoord2d0(Vec2f(1.0f, 0.0f)); ++iter;
-	iter.setTexCoord2d0(Vec2f(0.0f, 0.0f));*/
-
 	// Testing vbo!
-	renderer->gbuffer.getTexture(0).bind(0);
+	renderer->gbuffer.getTexture(1).bind(0);
 	defaultShader->bind();
 		defaultShader->uniform("texture", 0);
+		
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			
+				glVertexPointer(3, GL_FLOAT, 0, renderer->tileVerts);
+				glTexCoordPointer(2, GL_FLOAT, 0, renderer->tileUV);
 
-		//gl::pushMatrices();
-		//gl::scale(10.0f, 5.0f);
-		gl::draw(renderer->vboTile);
-		//gl::popMatrices();
+					float 
+						texelWidth = 1.0f / ((float)(renderer->getTileWidthCount())),
+						texelHeight = 1.0f / ((float)(renderer->getTileHeightCount()));
+					console() << toString(texelWidth) << endl;
+					console() << toString(texelHeight) << endl;
 
-		//gl::drawSolidRect(*(renderer->tileRect));
+					for (int ix = 0; ix < renderer->getTileWidthCount(); ix++) {
+						for (int iy = 0; iy < renderer->getTileHeightCount(); iy++) {
+							gl::pushMatrices();
+								gl::translate((float)(ix * renderer->getTileSize()), (float)(iy * renderer->getTileSize()));
+								gl::scale((float)renderer->getTileSize(), (float)renderer->getTileSize(), 1);
+								//renderer->setTileUV(randFloat(), randFloat(), randFloat(), randFloat());
+
+								renderer->setTileUV(
+									texelWidth * (float)ix, 
+									texelHeight * (float)iy,
+									texelWidth * (float)ix + texelWidth, 
+									texelHeight * (float)iy + texelWidth);
+
+								glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, renderer->tileIndices);
+							gl::popMatrices();
+						}
+					}
+
+			glDisableClientState(GL_VERTEX_ARRAY);
+			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
 	defaultShader->unbind();
 
 	// Draw text.

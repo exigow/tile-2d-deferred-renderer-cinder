@@ -35,7 +35,14 @@ namespace tiler {
 
 		Rectf *tileRect;
 
-		gl::VboMeshRef vboTile;
+		// Tile mesh elements.
+		GLfloat tileVerts[3 * 4];
+		GLfloat tileUV[2 * 4];
+		GLubyte tileIndices[4];
+
+		void setTileUV(float startX, float startY, float endX, float endY);
+
+		void clearBuffers();
 
 	private:
 		gl::Fbo::Format gbufferFormat; // G-Buffer format.
@@ -45,7 +52,5 @@ namespace tiler {
 
 		int tileTableWidth, tileTableHeight,
 			tileSize;
-
-		GLfloat tileVerts[3 * 4];
 	};
 };

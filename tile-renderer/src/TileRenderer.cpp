@@ -51,46 +51,69 @@ TileRenderer::TileRenderer(int width = 640, int height = 480, int tileSize = 32)
 	console() << "tile size: " << this->getTileSize() << endl;
 	console() << "tile max W: " << this->getTileWidthCount() << endl << "tile max H: " << this->getTileHeightCount() << endl;
 
-	// Create tile vbo.
-	gl::VboMesh::Layout vboTileLayout;
-	vboTileLayout.setStaticIndices();
-	vboTileLayout.setStaticPositions();
-	vboTileLayout.setDynamicTexCoords2d();
-	vboTile = gl::VboMesh::create(
-	4, 4, vboTileLayout, GL_QUADS);
+	// Vertex.
+	tileVerts[0] = 0.0f; 
+	tileVerts[1] = 0.0f; 
+	tileVerts[2] = 0.0f;
 
-	// Build indices.
-	vector<uint32_t> vboTileIndices;
-	vboTileIndices.push_back(0);
-	vboTileIndices.push_back(1);
-	vboTileIndices.push_back(2);
-	vboTileIndices.push_back(3);
-	vboTile->bufferIndices(vboTileIndices);
+	tileVerts[3] = 1.0f; 
+	tileVerts[4] = 0.0f; 
+	tileVerts[5] = 0.0f;
 
-	// Build positions.
-	vector<Vec3f> vboTilePositions;
-	vboTilePositions.push_back(Vec3f(0, 0, 0));
-	vboTilePositions.push_back(Vec3f((float)tileSize, 0, 0));
-	vboTilePositions.push_back(Vec3f((float)tileSize, (float)tileSize, 0));
-	vboTilePositions.push_back(Vec3f(0, (float)tileSize, 0));
-	vboTile->bufferPositions(vboTilePositions);
+	tileVerts[6] = 0.0f; 
+	tileVerts[7] = 1.0f; 
+	tileVerts[8] = 0.0f;
 
-	// Build uv (DEFAULT DYNAMIC).
-	gl::VboMesh::VertexIter vboIter = vboTile->mapVertexBuffer();
-	vboIter.setTexCoord2d0(Vec2f(0.0f, 1.0f)); ++vboIter;
-	vboIter.setTexCoord2d0(Vec2f(1.0f, 1.0f)); ++vboIter;
-	vboIter.setTexCoord2d0(Vec2f(1.0f, 0.0f)); ++vboIter;
-	vboIter.setTexCoord2d0(Vec2f(0.0f, 0.0f));
+	tileVerts[9] = 1.0f;
+	tileVerts[10] = 1.0f; 
+	tileVerts[11] = 0.0f;
 
-	/*int i = 0;
-	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f; i++;
-	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f; i++;
-	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f; i++;
-	tileVerts[i + 0] = 0.0f; tileVerts[i + 1] = 0.0f; tileVerts[i + 2] = 0.0f;*/
+	// Indices.
+	tileIndices[0] = 0;
+	tileIndices[1] = 1;
+	tileIndices[2] = 2;
 
+	tileIndices[3] = 1;
+	tileIndices[4] = 2;
+	tileIndices[5] = 3;
+
+	// UVs.
+	setTileUV(0.0f, 0.0f, 1.0f, 1.0f);
+}
+
+void TileRenderer::clearBuffers() {
+	gbuffer.bindFramebuffer();
+		gl::clear(ColorA(.25, 0.0f, .225, 1.0f));
+	gbuffer.unbindFramebuffer();
 }
 
 TileRenderer::~TileRenderer() {
+}
+
+void TileRenderer::setTileUV(float startX, float startY, float endX, float endY) {
+	/*tileUV[0] = startX;
+	tileUV[1] = startY;
+
+	tileUV[2] = endX;
+	tileUV[3] = startY;
+
+	tileUV[4] = startX;
+	tileUV[5] = endY;
+
+	tileUV[6] = endX;
+	tileUV[7] = endY;*/
+
+	tileUV[4] = startX;
+	tileUV[5] = startY;
+
+	tileUV[6] = endX;
+	tileUV[7] = startY;
+
+	tileUV[0] = startX;
+	tileUV[1] = endY;
+
+	tileUV[2] = endX;
+	tileUV[3] = endY;
 }
 
 void TileRenderer::captureStart(CameraOrtho cameraOrtho, ci::gl::GlslProg *gbufferShader) {
