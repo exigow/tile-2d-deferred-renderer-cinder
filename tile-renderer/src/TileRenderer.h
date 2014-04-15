@@ -22,8 +22,6 @@ namespace tiler {
 		void captureStart(CameraOrtho cameraOrtho, GlslProg *gbufferShader);
 		void captureEnd(GlslProg *gbufferShader);
 
-		void drawTileTable(GlslProg *shader);
-
 		Tile getTile(int tileCount);
 		Tile getTile(int tileWidth, int tileHeight);
 
@@ -33,12 +31,12 @@ namespace tiler {
 
 		std::string getStateString();
 
-		Rectf *tileRect;
-
 		// Tile mesh elements.
 		GLfloat tileVerts[3 * 4];
 		GLfloat tileUV[2 * 4];
 		GLubyte tileIndices[4];
+
+		float texelWidth, texelHeight;
 
 		void setTileUV(float startX, float startY, float endX, float endY);
 

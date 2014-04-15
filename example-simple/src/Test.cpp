@@ -45,7 +45,7 @@ private:
 	Vec2f mousePos, mousePosNormal;
 	Rectf *globalRect;
 
-	float fps;
+	float fps, time;
 	float testLightSize;
 };
 
@@ -82,18 +82,19 @@ void Test::setup() {
 	MaterialInstance *_tmpInstance;
 	#define MAX 1
 	#define MSCALE 256.0f
-	//for (int ix = -MAX; ix < MAX * 2; ix++) {
-		//for (int iy = -MAX; iy < MAX * 2; iy++) {
+	for (int ix = -MAX; ix < MAX * 2; ix++) {
+		for (int iy = -MAX; iy < MAX * 2; iy++) {
 			_tmpInstance = new MaterialInstance(testMaterial);
-			//_tmpInstance->setPosition((float)ix * MSCALE, (float)iy * MSCALE);
+			_tmpInstance->setPosition((float)ix * MSCALE, (float)iy * MSCALE);
 			testMaterialInstalceList.push_back(_tmpInstance);
-		//}
-	//}
+		}
+	}
 }
 
 void Test::update() {
 	cameraController->updateStep(1.0f / 60.0f);
 	fps = getAverageFps();
+	time = (float)getElapsedSeconds();
 }
 
 void Test::draw() {
@@ -153,26 +154,6 @@ void Test::draw() {
 	pointLightShader->unbind();
 	*/
 
-	// Fill test tile.
-	/*renderer->gbuffer.getTexture(1).bind(0);
-		defaultShader->bind();
-			for (int ix = 0; ix < renderer->getTileWidthCount(); ix++) {
-				for (int iy = 0; iy < renderer->getTileHeightCount(); iy++) {
-					renderer->getTile(ix, iy).getBuffer().bindFramebuffer();
-					defaultShader->uniform("texture", 0);
-					gl::pushMatrices();
-						gl::translate(Vec2f(0.0f, (float)renderer->gbuffer.getHeight()) - Vec2f(0.0f, (float)renderer->getTileSize()));
-						// TODO Tu trzeba updejtowac uv-coordy do komorek.
-						gl::drawSolidRect(*(renderer->tileRect));
-					gl::popMatrices();
-				}
-			}
-		defaultShader->unbind();
-	renderer->getTile(0).getBuffer().unbindFramebuffer();*/
-
-	// Draw tiles.
-	renderer->drawTileTable(defaultShader);
-
 	// Testing vbo!
 	renderer->gbuffer.getTexture(1).bind(0);
 	defaultShader->bind();
@@ -187,21 +168,20 @@ void Test::draw() {
 					float 
 						texelWidth = 1.0f / ((float)(renderer->getTileWidthCount())),
 						texelHeight = 1.0f / ((float)(renderer->getTileHeightCount()));
-					console() << toString(texelWidth) << endl;
-					console() << toString(texelHeight) << endl;
 
 					for (int ix = 0; ix < renderer->getTileWidthCount(); ix++) {
 						for (int iy = 0; iy < renderer->getTileHeightCount(); iy++) {
 							gl::pushMatrices();
-								gl::translate((float)(ix * renderer->getTileSize()), (float)(iy * renderer->getTileSize()));
-								gl::scale((float)renderer->getTileSize(), (float)renderer->getTileSize(), 1);
-								//renderer->setTileUV(randFloat(), randFloat(), randFloat(), randFloat());
+								gl::translate((float)(ix * renderer->getTileSize()) + 4, (float)(iy * renderer->getTileSize()) + 4);
+								gl::scale((float)renderer->getTileSize() - 8, (float)renderer->getTileSize() - 8, 1);
+
+								gl::rotate(Vec3f(0.0f, 0.0f, 8.0f));
 
 								renderer->setTileUV(
-									texelWidth * (float)ix, 
-									texelHeight * (float)iy,
-									texelWidth * (float)ix + texelWidth, 
-									texelHeight * (float)iy + texelWidth);
+									renderer->texelWidth * (float)ix, 
+									1.0f - renderer->texelHeight * (float)iy,
+									renderer->texelWidth * (float)ix + renderer->texelWidth, 
+									1.0f - renderer->texelHeight * (float)iy + renderer->texelHeight);
 
 								glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_BYTE, renderer->tileIndices);
 							gl::popMatrices();

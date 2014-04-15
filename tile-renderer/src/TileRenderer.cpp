@@ -42,18 +42,17 @@ TileRenderer::TileRenderer(int width = 640, int height = 480, int tileSize = 32)
 		}
 	}
 
-	// Tile rectangle.
-	tileRect = new Rectf();
-	tileRect->set(0, (float)tileSize, (float)tileSize, 0);
-
 	// Debug console info.
 	console() << "width: " << this->gbuffer.getWidth() << endl << "height: " << this->gbuffer.getHeight() << endl;
 	console() << "tile size: " << this->getTileSize() << endl;
 	console() << "tile max W: " << this->getTileWidthCount() << endl << "tile max H: " << this->getTileHeightCount() << endl;
 
+	texelWidth = 1.0f / ((float)(this->tileTableWidth));
+	texelHeight = 1.0f / ((float)(this->tileTableHeight));
+
 	// Vertex.
-	tileVerts[0] = 0.0f; 
-	tileVerts[1] = 0.0f; 
+	tileVerts[0] = 0.0f;
+	tileVerts[1] = 0.0f;
 	tileVerts[2] = 0.0f;
 
 	tileVerts[3] = 1.0f; 
@@ -83,7 +82,7 @@ TileRenderer::TileRenderer(int width = 640, int height = 480, int tileSize = 32)
 
 void TileRenderer::clearBuffers() {
 	gbuffer.bindFramebuffer();
-		gl::clear(ColorA(.25, 0.0f, .225, 1.0f));
+		gl::clear(ColorA(.25f, 0.0f, .225, 1.0f));
 	gbuffer.unbindFramebuffer();
 }
 
@@ -91,18 +90,6 @@ TileRenderer::~TileRenderer() {
 }
 
 void TileRenderer::setTileUV(float startX, float startY, float endX, float endY) {
-	/*tileUV[0] = startX;
-	tileUV[1] = startY;
-
-	tileUV[2] = endX;
-	tileUV[3] = startY;
-
-	tileUV[4] = startX;
-	tileUV[5] = endY;
-
-	tileUV[6] = endX;
-	tileUV[7] = endY;*/
-
 	tileUV[4] = startX;
 	tileUV[5] = startY;
 
@@ -171,27 +158,14 @@ std::string TileRenderer::getStateString() {
 		"tiles count: " + toString(tileTableWidth) + ", " + toString(tileTableHeight) + "\n";
 }
 
-void TileRenderer::drawTileTable(GlslProg *shader) {
-	// Bind shader.
-	shader->bind();
-		shader->uniform("texture", 0);
-		for (int ix = 0; ix < getTileWidthCount(); ix++) {
-			for (int iy = 0; iy < getTileHeightCount(); iy++) {
-				// Bind tile texture.
-				getTile(ix, iy).getBuffer().getTexture(0).bind(0);
 
-				// Compute position and size.
-				float 
-					_x = (float)ix * getTileSize(), 
-					_y = (float)iy * getTileSize(),
-					_s = (float)getTileSize();
 
-				// Draw.
-				gl::pushMatrices();
-					gl::translate(_x, _y);
-					gl::drawSolidRect(*(tileRect));
-				gl::popMatrices();
-			}
-		}
-	shader->unbind();
-}
+
+
+
+
+
+
+
+
+//
